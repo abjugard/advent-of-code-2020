@@ -11,7 +11,7 @@ def part2(inp):
   print(inp)
 
 
-def main() -> None:
+def main():
   inp = list(get_data(today))
   star1 = part1(inp)
   print(f'{today} star 1 = {star1}')
