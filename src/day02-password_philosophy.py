@@ -1,6 +1,5 @@
 from santas_little_helpers import day, get_data, timed, base_ops
 from itertools import starmap
-from collections import Counter
 from operator import xor
 
 today = day(2020, 2)
@@ -13,8 +12,7 @@ def parse(pwd):
 
 
 def is_valid1(min_count, max_count, letter, pwd):
-  d = Counter(pwd)
-  return d[letter] >= min_count and d[letter] <= max_count
+  return min_count <= pwd.count(letter) <= max_count
 
 
 def is_valid2(n1, n2, letter, pwd):
