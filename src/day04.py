@@ -52,8 +52,7 @@ def passport_valid(passport):
 
 
 def parse(data):
-  segments = data.replace('\n', ' ').strip(' ').split(' ')
-  return dict(part.split(':') for part in segments)
+  return dict(segment.split(':') for segment in data.split())
 
 
 def main():
