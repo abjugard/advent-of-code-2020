@@ -2,8 +2,6 @@ from santas_little_helpers import day, get_data, timed
 
 today = day(2020, 5)
 
-conversion_table = str.maketrans('FBLR', '0101')
-
 
 def find_seat(seats):
   for seat in seats:
@@ -11,12 +9,11 @@ def find_seat(seats):
       return seat + 1
 
 
-def parse(seat):
-  return int(seat.translate(conversion_table), 2)
-
-
 def main():
-  seats = set(get_data(today, [('func', parse)]))
+  seats = set(get_data(today, [
+    ('translate', ('FBLR', '0101')),
+    ('func', (int, [2]))
+  ]))
   print(f'{today} star 1 = {max(seats)}')
   print(f'{today} star 2 = {find_seat(seats)}')
 
