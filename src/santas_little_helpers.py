@@ -1,4 +1,5 @@
-import json, re, time, importlib, sys, os
+import json, re, importlib, sys, os
+from time import time
 from datetime import date
 from pathlib import Path
 from typing import Callable, Iterator
@@ -85,17 +86,22 @@ def time_fmt(delta: float) -> (float, str):
 
 
 def execute(func: Callable) -> float:
-  start = time.time()
+  start = time()
   func()
-  return time.time() - start
+  return time() - start
 
 
-def execute_multiple(func: Callable, times: int) -> [float]:
-  deltas = [execute(func)]
+def execute_multiple(func: Callable, times) -> [float]:
+  initial = execute(func)
+  if times is None:
+    times = 1000 if initial < 0.005 else 100
+  deltas = [initial]
+
   disable_stdout()
   for _ in range(times - 1):
     deltas += [execute(func)]
-  enable_stdout()
+  restore_stdout()
+
   return deltas
 
 
@@ -108,15 +114,19 @@ def disable_stdout() -> None:
   sys.stdout = open(os.devnull, 'w')
 
 
-def enable_stdout() -> None:
+def restore_stdout() -> None:
   sys.stdout = sys.__stdout__
 
 
-def bench(func: Callable, times: int = 100):
+def bench(func: Callable, times=None):
+  start = time()
   deltas = execute_multiple(func, times)
+  total = time() - start
+  times = len(deltas)
   print_result(min(deltas), 'min')
   avg = sum(deltas) / len(deltas)
   print_result(avg, 'avg')
+  print_result(total, 'tot', suffix=f'(n={times})')
 
 
 def average(func: Callable, times: int = 100):
@@ -125,12 +135,14 @@ def average(func: Callable, times: int = 100):
   print_result(avg, 'avg')
 
 
-def print_result(delta: [float], prefix: str = ''):
+def print_result(delta: [float], prefix: str = '', suffix: str = ''):
   multiplier, unit = time_fmt(delta)
   divider = ''
-  if prefix is not '':
+  if prefix != '':
     divider = ': '
-  print(f'--- {prefix}{divider}{delta*multiplier:.2f} {unit} ---')
+  if suffix != '':
+    suffix = ' ' + suffix
+  print(f'--- {prefix}{divider}{delta*multiplier:.2f} {unit}{suffix} ---')
 
 
 def run_all():
