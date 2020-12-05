@@ -3,6 +3,7 @@ from time import time
 from datetime import date
 from pathlib import Path
 from typing import Callable, Iterator
+from functools import reduce
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 ALPHABET = alphabet.upper()
@@ -20,17 +21,38 @@ def day(year: int, theday: int) -> date:
   return date(year, 12, theday)
 
 
-def format_line(line: str, ops: list):
+def build_op(op, args):
+  if op == 'func':
+    if isinstance(args, tuple):
+      return lambda line: args[0](line, *args[1])
+    else:
+      return lambda line: args(line)
+  elif op == 'map':
+    return lambda line: list(map(args, line))
+  elif op == 'replace':
+    matcher = re.compile(args[0])
+    return lambda line: matcher.sub(args[1], line)
+  elif op == 'split':
+    return lambda line: line.split(args)
+  elif op == 'translate':
+    if isinstance(args, dict):
+      translations = str.maketrans(args)
+    else:
+      translations = str.maketrans(*args)
+    return lambda line: line.translate(translations)
+  elif op == 'translatemany':
+    targets, replacement = args
+    translations = str.maketrans(targets, replacement * len(targets))
+    return lambda line: line.translate(translations)
+
+
+def build_op_chain(ops):
   for op, args in ops:
-    if op == 'func':
-      line = args(line)
-    elif op == 'map':
-      line = list(map(args, line))
-    elif op == 'replace':
-      line = re.sub(args[0], args[1], line)
-    elif op == 'split':
-      line = line.split(args)
-  return line
+    yield build_op(op, args)
+
+
+def format_line(line, op_chain):
+  return reduce(lambda data, op: op(data), op_chain, line)
 
 
 def get_data(today: date = date.today(), ops: list = base_ops) -> Iterator:
@@ -54,9 +76,11 @@ def get_data(today: date = date.today(), ops: list = base_ops) -> Iterator:
   if not file_path.exists():
     print(f'Data for day {today.day} not available, downloading!')
     save_daily_input(today)
+
+  op_chain = list(build_op_chain(ops))
   with file_path.open() as f:
     for line in f.readlines():
-      yield format_line(line, ops)
+      yield format_line(line, op_chain)
 
 
 def submit_answer(today: date, answer: str, level: int = 1) -> None:
