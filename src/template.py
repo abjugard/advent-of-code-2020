@@ -11,8 +11,14 @@ def part2(inp):
   print(inp)
 
 
+def parse(line):
+  return line
+
+
 def main():
-  inp = list(get_data(today))
+  inp = list(get_data(today, base_ops + [
+    # ('func', parse)
+  ], groups=False))
   star1 = part1(inp)
   print(f'{today} star 1 = {star1}')
   # submit_answer(today, star1)
