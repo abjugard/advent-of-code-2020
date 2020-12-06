@@ -56,8 +56,7 @@ def parse(data):
 
 
 def main():
-  unparsed_input = ''.join(get_data(today, []))
-  passports = map(parse, unparsed_input.split('\n\n'))
+  passports = list(get_data(today, [('func', parse)], groups=True))
   complete_passports = list(filter(passport_complete, passports))
   print(f'{today} star 1 = {len(complete_passports)}')
   print(f'{today} star 2 = {sum(map(passport_valid, complete_passports))}')

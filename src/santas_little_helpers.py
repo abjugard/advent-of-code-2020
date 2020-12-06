@@ -55,7 +55,7 @@ def format_line(line, op_chain):
   return reduce(lambda data, op: op(data), op_chain, line)
 
 
-def get_data(today: date = date.today(), ops: list = base_ops) -> Iterator:
+def get_data(today: date = date.today(), ops: list = base_ops, groups: bool = False) -> Iterator:
   if not aoc_data.exists():
     aoc_data.mkdir()
 
@@ -79,7 +79,8 @@ def get_data(today: date = date.today(), ops: list = base_ops) -> Iterator:
 
   op_chain = list(build_op_chain(ops))
   with file_path.open() as f:
-    for line in f.readlines():
+    lines = f.read().strip().split('\n\n' if groups else '\n')
+    for line in lines:
       yield format_line(line, op_chain)
 
 
