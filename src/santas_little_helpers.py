@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Callable, Iterator
 from functools import reduce
 
+setup_start = time()
+
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 ALPHABET = alphabet.upper()
 
@@ -18,6 +20,8 @@ with (aoc_root / 'config.json').open('r') as f:
 
 
 def day(year: int, theday: int) -> date:
+  global setup_start
+  setup_start = time()
   return date(year, 12, theday)
 
 
@@ -117,22 +121,27 @@ def execute(func: Callable) -> float:
 
 
 def execute_multiple(func: Callable, times) -> [float]:
+  setup = time() - setup_start
   initial = execute(func)
   if times is None:
     times = 1000 if initial < 0.005 else 100
-  deltas = [initial]
+  deltas = [initial + setup]
 
   disable_stdout()
   for _ in range(times - 1):
-    deltas += [execute(func)]
+    deltas += [execute(func) + setup]
   restore_stdout()
 
   return deltas
 
 
-def timed(func: Callable) -> None:
+def timed(func: Callable, start=None) -> None:
+  if setup_start is not None:
+    setup = time() - setup_start
+  if start is not None:
+    setup = time() - start
   delta = execute(func)
-  print_result(delta)
+  print_result(delta + setup)
 
 
 def disable_stdout() -> None:
@@ -173,8 +182,9 @@ def print_result(delta: [float], prefix: str = '', suffix: str = ''):
 def run_all():
   for file in sorted(Path('.').glob('day*-*.py')):
     print(f'Running \'{file.name}\':')
+    import_start = time()
     day = importlib.import_module(file.name[:-3])
-    timed(day.main)
+    timed(day.main, import_start)
     print()
 
 
