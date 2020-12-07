@@ -1,8 +1,11 @@
 from santas_little_helpers import day, get_data, timed
+import re
 
 today = day(2020, 7)
 
 d = None
+outer_re = re.compile(r'(.+) bags contain (.+)\.')
+inner_re = re.compile(r'(\d+) (.+?) bags?')
 
 
 def find(target, bag):
@@ -24,18 +27,14 @@ def count(bag):
 
 
 def parse(line):
-  outer, inner = line.split(' bags contain ')
+  outer, inner = outer_re.match(line).groups()
 
-  inner = inner.replace('.', '').replace(' bags', '').replace(' bag', '')
   if inner == 'no other':
     return outer, None
 
-  bags = []
-  for bag in inner.split(', '):
-    count, color = bag.split(' ', 1)
-    bags.append((color, int(count)))
+  bags = {color: int(count) for count, color in inner_re.findall(line)}
 
-  return outer, dict(bags)
+  return outer, bags
 
 
 def main():
