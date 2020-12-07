@@ -1,49 +1,38 @@
 from santas_little_helpers import day, get_data, timed
+from collections import defaultdict
 import re
 
 today = day(2020, 7)
 
-d = None
 outer_re = re.compile(r'(.+) bags contain (.+)\.')
 inner_re = re.compile(r'(\d+) (.+?) bags?')
 
-
-def find(target, bag):
-  if target == bag:
-    return True
-  options = d[bag]
-  if options is None:
-    return False
-  return any(find(target, other) for other in options.keys())
+contents = defaultdict(dict)
+contained_in = defaultdict(set)
 
 
-def count(bag):
-  options = d[bag]
-  if options is None:
-    return 0
-  direct = sum(options.values())
-  nested = sum(amt * count(other) for other, amt in options.items())
-  return direct + nested
+def find(target):
+  cs = set(contained_in[target])
+  for c in contained_in[target]:
+    cs.update(find(c))
+  return cs
 
 
-def parse(line):
+def contains(bag):
+  return sum(n + n * contains(other) for other, n in contents[bag].items())
+
+
+def setup(line):
   outer, inner = outer_re.match(line).groups()
-
-  if inner == 'no other':
-    return outer, None
-
-  bags = {color: int(count) for count, color in inner_re.findall(line)}
-
-  return outer, bags
+  for count, color in inner_re.findall(line):
+    contained_in[color].add(outer)
+    contents[outer][color] = int(count)
 
 
 def main():
-  global d
-  d = dict(get_data(today, [('func', parse)]))
-  target = 'shiny gold'
-  combinations = sum(find(target, bag) for bag in d.keys() if bag != target)
-  print(f'{today} star 1 = {combinations}')
-  print(f'{today} star 2 = {count(target)}')
+  list(get_data(today, [('func', setup)]))
+  print(f'{today} star 1 = {len(find("shiny gold"))}')
+  print(f'{today} star 2 = {contains("shiny gold")}')
 
 
 if __name__ == '__main__':
