@@ -1,4 +1,4 @@
-from santas_little_helpers import day, get_data, timed, alphabet, submit_answer, base_ops
+from santas_little_helpers import *
 
 today = day(2020, XX)
 
