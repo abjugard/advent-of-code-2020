@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 from typing import Callable, Iterator
 from functools import reduce
+from dataclasses import dataclass
 
 setup_start = time()
 
@@ -19,10 +20,38 @@ with (aoc_root / 'config.json').open('r') as f:
   config = json.load(f)
 
 
+def make_cpu(instrs: list):
+  return {instr.__name__: instr for instr in instrs}
+
+
+@dataclass
+class CpuRegisters:
+  pc: int = 0
+
+  def inc_pc(self, jmp=1):
+    self.pc += jmp
+
+
 def day(year: int, theday: int) -> date:
   global setup_start
   setup_start = time()
   return date(year, 12, theday)
+
+
+def asmbunny_setup(instrs: list, line: str) -> (Callable, tuple):
+  cpu = make_cpu(instrs)
+  instr, *raw = line.strip().split(' ')
+  if instr not in cpu:
+    print(f'Incompatible CPU! Missing instruction: {instr}')
+    exit(1)
+  args = ()
+  for arg in raw:
+    try:
+      arg = int(arg)
+    except Exception:
+      pass
+    args += arg,
+  return cpu[instr], args
 
 
 def build_op(op, args):
@@ -48,6 +77,8 @@ def build_op(op, args):
     targets, replacement = args
     translations = str.maketrans(targets, replacement * len(targets))
     return lambda line: line.translate(translations)
+  elif op == 'asmbunny':
+    return lambda line: asmbunny_setup(args, line)
 
 
 def build_op_chain(ops):
