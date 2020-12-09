@@ -14,12 +14,16 @@ def find_xmas_magic(xmas_data):
 def crack_xmas(magic_number, xmas_data):
   chunk_start = 0
   while xmas_data[chunk_start] < magic_number:
-    chunk = [xmas_data[chunk_start]]
-    for next_val in xmas_data[chunk_start + 1:]:
-      chunk.append(next_val)
-      if sum(chunk) == magic_number:
+    chunk_sum = xmas_data[chunk_start]
+    for chunk_end in range(chunk_start + 1, len(xmas_data)):
+      next_val = xmas_data[chunk_end]
+      chunk_sum += next_val
+      if chunk_sum < magic_number:
+        continue
+      chunk = xmas_data[chunk_start:chunk_end]
+      if chunk_sum == magic_number:
         return min(chunk) + max(chunk)
-      if sum(chunk) > magic_number:
+      if chunk_sum > magic_number:
         skip = 1
         while sum(chunk[:skip + 1]) <= next_val:
           skip += 1
@@ -35,4 +39,4 @@ def main():
 
 
 if __name__ == '__main__':
-  bench(main)
+  timed(main)
