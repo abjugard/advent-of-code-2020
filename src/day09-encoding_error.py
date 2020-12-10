@@ -1,34 +1,31 @@
 from santas_little_helpers import *
-from itertools import combinations
+from collections import deque
 
 today = day(2020, 9)
 
 
 def find_xmas_magic(xmas_data):
-  for i in range(25, len(xmas_data)):
-    preceeding_pairs = combinations(xmas_data[i - 25:i], 2)
-    if all(sum(pair) != xmas_data[i] for pair in preceeding_pairs):
-      return xmas_data[i]
+  for idx in range(25, len(xmas_data)):
+    defect = xmas_data[idx]
+    preamble = set(xmas_data[idx - 25:idx])
+    for other in preamble:
+      if defect - other in preamble:
+        break
+    else:
+      return defect
 
 
 def crack_xmas(magic_number, xmas_data):
-  chunk_start = 0
-  while xmas_data[chunk_start] < magic_number:
-    chunk_sum = xmas_data[chunk_start]
-    for chunk_end in range(chunk_start + 1, len(xmas_data)):
-      next_val = xmas_data[chunk_end]
-      chunk_sum += next_val
-      if chunk_sum < magic_number:
-        continue
-      chunk = xmas_data[chunk_start:chunk_end]
-      if chunk_sum == magic_number:
-        return min(chunk) + max(chunk)
-      if chunk_sum > magic_number:
-        skip = 1
-        while sum(chunk[:skip + 1]) <= next_val:
-          skip += 1
-        chunk_start += skip
-        break
+  chunk = deque()
+  data = deque(xmas_data)
+  chunk_sum = 0
+  while chunk_sum != magic_number:
+    next_val = data.popleft()
+    chunk_sum += next_val
+    chunk.append(next_val)
+    while chunk_sum > magic_number:
+      chunk_sum -= chunk.popleft()
+  return min(chunk) + max(chunk)
 
 
 def main():
