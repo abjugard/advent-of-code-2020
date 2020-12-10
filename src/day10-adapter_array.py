@@ -1,11 +1,13 @@
 from santas_little_helpers import *
+from functools import lru_cache
 
 today = day(2020, 10)
 
-cache = {}
+adapters = []
+target = None
 
 
-def joltage_differences(adapters):
+def joltage_differences():
   diff = [0, 0, 0]
   last = 0
   for adp in adapters:
@@ -20,26 +22,23 @@ def can_plug(next_joltage, current_joltage):
   return next_joltage - current_joltage <= 3
 
 
-def combinations(remaining, joltage, target):
-  cache_key = (joltage, len(remaining))
-  if cache_key in cache:
-    return cache[cache_key]
-
-  if len(remaining) == 0:
+@lru_cache
+def combinations(idx=0, joltage=0):
+  if idx == len(adapters):
     return can_plug(target, joltage)
-  adapter, *remaining = remaining
-  total = combinations(remaining, joltage, target)
-  if can_plug(adapter, joltage):
-    total += combinations(remaining, adapter, target)
 
-  cache[cache_key] = total + can_plug(target, joltage)
+  total = combinations(idx + 1, joltage)
+  if can_plug(adapters[idx], joltage):
+    total += combinations(idx + 1, adapters[idx])
   return total
 
 
 def main():
+  global adapters, target
   adapters = list(sorted(get_data(today, [('func', int)])))
-  print(f'{today} star 1 = {joltage_differences(adapters)}')
-  print(f'{today} star 2 = {combinations(adapters, 0, max(adapters) + 3)}')
+  target = max(adapters) + 3
+  print(f'{today} star 1 = {joltage_differences()}')
+  print(f'{today} star 2 = {combinations()}')
 
 
 if __name__ == '__main__':
