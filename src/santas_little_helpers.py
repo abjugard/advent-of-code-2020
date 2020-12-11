@@ -4,7 +4,6 @@ from datetime import date
 from pathlib import Path
 from typing import Callable, Iterator
 from functools import reduce
-from dataclasses import dataclass
 
 setup_start = time()
 
@@ -24,12 +23,22 @@ def make_cpu(instrs: list):
   return {instr.__name__: instr for instr in instrs}
 
 
-@dataclass
-class CpuRegisters:
-  pc: int = 0
+def import_dataclasses():
+  from dataclasses import dataclass
+  return dataclass
 
-  def inc_pc(self, jmp=1):
-    self.pc += jmp
+
+try:
+  dataclass = import_dataclasses()
+
+  @dataclass
+  class CpuRegisters:
+    pc: int = 0
+
+    def inc_pc(self, jmp=1):
+      self.pc += jmp
+except Exception:
+  pass
 
 
 def day(year: int, theday: int) -> date:
