@@ -40,7 +40,7 @@ def iterate(grid, tolerance=4, tolerance_func=get_adjacent):
   for y in range(len(grid)):
     n_row = grid[y].copy()
     for x, current in enumerate(grid[y]):
-      if current not in '#L':
+      if current == '.':
         continue
       taken_seats = tolerance_func(grid, y, x)
       if current == 'L':
