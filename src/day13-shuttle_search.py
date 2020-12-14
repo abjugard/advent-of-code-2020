@@ -4,7 +4,7 @@ from sympy.ntheory.modular import crt
 today = day(2020, 13)
 
 
-def part1(earliest, buses):
+def select_optimal_bus(earliest, buses):
   buses = [bus for bus in buses if bus != 'x']
   n_bus, time_to_wait = None, None
   for bus in buses:
@@ -18,7 +18,7 @@ def part1(earliest, buses):
   return n_bus * time_to_wait
 
 
-def part2(buses):
+def win_contest(buses):
   offsets = [-offset for offset, bus in enumerate(buses) if bus != 'x']
   buses = [bus for bus in buses if bus != 'x']
   return crt(buses, offsets)[0]
@@ -32,8 +32,8 @@ def parse(inp):
 
 def main():
   earliest, buses = parse(get_data(today))
-  print(f'{today} star 1 = {part1(earliest, buses)}')
-  print(f'{today} star 2 = {part2(buses)}')
+  print(f'{today} star 1 = {select_optimal_bus(earliest, buses)}')
+  print(f'{today} star 2 = {win_contest(buses)}')
 
 
 if __name__ == '__main__':
