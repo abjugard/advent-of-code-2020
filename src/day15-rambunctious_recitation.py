@@ -8,7 +8,7 @@ def play_game(init_rounds, target_turns):
   last = 0
 
   for turn in range(len(init_rounds), max(target_turns)):
-    n = (turn - seen[last]) if last in seen else 0
+    n = turn - seen[last] if last in seen else 0
 
     if turn + 1 in target_turns:
       yield last
