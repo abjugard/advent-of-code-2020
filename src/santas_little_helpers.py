@@ -99,6 +99,12 @@ def format_line(line, op_chain):
   return reduce(lambda data, op: op(data), op_chain, line)
 
 
+def skip(count, it):
+  for _ in range(count):
+    next(it)
+  return next(it)
+
+
 def get_data(today: date = date.today(), ops: list = base_ops, groups: bool = False) -> Iterator:
   if not aoc_data.exists():
     aoc_data.mkdir()
