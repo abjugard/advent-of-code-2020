@@ -5,8 +5,7 @@ today = day(2020, 18)
 
 
 def consume(expr):
-  op = add
-  acc = 0
+  op, acc = add, 0
   for part in expr:
     if part in [add, mul]:
       op = part
@@ -15,40 +14,36 @@ def consume(expr):
   return acc
 
 
-def consume_adds(expr):
-  while any(p == add for p in expr):
-    next_add = expr.index(add)
-    value = expr[next_add - 1] + expr[next_add + 1]
-    expr = expr[:next_add - 1] + [value] + expr[next_add + 2:]
-  return expr
-
-
-def stupid_math(line):
-  return consume(build_expression(line))
-
-
-def monster_math(line):
-  expr = build_expression(line, monster_math)
-  expr = consume_adds(expr)
+def left_to_right(eqn):
+  expr = build_expression(eqn, left_to_right)
   return consume(expr)
 
 
-def find_closing(line):
-  level = -1
-  for idx, c in enumerate(line):
+def addition_first(eqn):
+  expr = build_expression(eqn, addition_first)
+  while any(part == add for part in expr):
+    next_add = expr.index(add)
+    l, r = next_add - 1, next_add + 1
+    expr = expr[:l] + [expr[l] + expr[r]] + expr[r + 1:]
+  return consume(expr)
+
+
+def find_eqn(s):
+  level = 0
+  for idx, c in enumerate(s):
     if c == ')':
-      if level == 0:
-        return idx + 1
+      if level == 1:
+        return s[1:idx], idx + 1
       level -= 1
     if c == '(':
       level += 1
 
 
-def build_expression(line, fun=stupid_math):
+def build_expression(line, solve):
   expr = []
   idx = 0
   while idx < len(line):
-    offset = 1
+    skip = 1
     c = line[idx]
     if c in '123456789':
       expr.append(int(c))
@@ -57,24 +52,16 @@ def build_expression(line, fun=stupid_math):
     elif c == '*':
       expr.append(mul)
     elif c == '(':
-      offset = find_closing(line[idx:])
-      value = fun(line[idx + 1:idx + offset - 1])
-      expr.append(value)
-    idx += offset
+      eqn, skip = find_eqn(line[idx:])
+      expr.append(solve(eqn))
+    idx += skip
   return expr
 
 
-def acc(fake_math, fun=stupid_math):
-  s = 0
-  for line in fake_math:
-    s += fun(line)
-  return s
-
-
 def main():
-  fake_math = list(get_data(today, base_ops + [('replace', (' ', ''))]))
-  print(f'{today} star 1 = {acc(fake_math)}')
-  print(f'{today} star 2 = {acc(fake_math, monster_math)}')
+  homework = list(get_data(today, base_ops + [('replace', (' ', ''))]))
+  print(f'{today} star 1 = {sum(left_to_right(eqn) for eqn in homework)}')
+  print(f'{today} star 2 = {sum(addition_first(eqn) for eqn in homework)}')
 
 
 if __name__ == '__main__':
