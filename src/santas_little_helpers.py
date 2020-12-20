@@ -3,7 +3,8 @@ from time import time
 from datetime import date
 from pathlib import Path
 from typing import Callable, Iterator
-from functools import reduce
+from functools import reduce, lru_cache
+from itertools import product
 
 setup_start = time()
 
@@ -103,6 +104,10 @@ def skip(count, it):
   for _ in range(count):
     next(it)
   return next(it)
+
+@lru_cache()
+def all_coords(height, width, start_h=0, start_w=0):
+  return list(product(range(start_h, height), range(start_w, width)))
 
 
 def get_data(today: date = date.today(), ops: list = base_ops, groups: bool = False) -> Iterator:
