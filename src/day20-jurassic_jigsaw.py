@@ -36,22 +36,22 @@ def candidates(consumed, conditions):
         yield tile, alt, g
 
 
-def fill_empty(image, consumed=set()):
+def lay_puzzle(puzzle, consumed=set()):
   for x, y in all_coords(width, height):
-    if image[y][x] is None:
+    if puzzle[y][x] is None:
       break
   else:
-    return image
+    return puzzle
   conditions = {}
   if x > 0:
-    conditions[3] = image[y][x - 1]['edges'][1]
+    conditions[3] = puzzle[y][x - 1]['edges'][1]
   if y > 0:
-    conditions[0] = image[y - 1][x]['edges'][2]
-  n_image = image.copy()
-  n_image[y] = image[y].copy()
+    conditions[0] = puzzle[y - 1][x]['edges'][2]
+  n_puzzle = puzzle.copy()
+  n_puzzle[y] = puzzle[y].copy()
   for tile, edges, g in candidates(consumed, conditions):
-    n_image[y][x] = {'tile': tile, 'edges': edges, 'grid': g}
-    result = fill_empty(n_image, consumed | {tile})
+    n_puzzle[y][x] = {'tile': tile, 'edges': edges, 'grid': g}
+    result = lay_puzzle(n_puzzle, consumed | {tile})
     if result is not None:
       return result
   return None
@@ -61,8 +61,8 @@ def trim(grid):
   return [row[1:-1] for row in grid[1:-1]]
 
 
-def reconstruct_image(image_data):
-  trimmed = [[trim(item['grid']) for item in row] for row in image_data]
+def reconstruct_image(puzzle_data):
+  trimmed = [[trim(item['grid']) for item in row] for row in puzzle_data]
   t_h, t_w = len(trimmed[0][0]), len(trimmed[0][0][0])
   image = [[] for _ in range(height * t_w)]
   for y, grids in enumerate(trimmed):
@@ -71,35 +71,36 @@ def reconstruct_image(image_data):
   return image
 
 
-def lay_puzzle():
-  image_data = [[None for _ in range(width)] for _ in range(height)]
-  image_data = fill_empty(image_data)
+def solve_puzzle():
+  puzzle_data = [[None for _ in range(width)] for _ in range(height)]
+  puzzle_data = lay_puzzle(puzzle_data)
 
-  checksum = image_data[0][0]['tile']
-  checksum *= image_data[0][-1]['tile']
-  checksum *= image_data[-1][0]['tile']
-  checksum *= image_data[-1][-1]['tile']
+  checksum = puzzle_data[0][0]['tile']
+  checksum *= puzzle_data[0][-1]['tile']
+  checksum *= puzzle_data[-1][0]['tile']
+  checksum *= puzzle_data[-1][-1]['tile']
 
-  return checksum, reconstruct_image(image_data)
+  return checksum, reconstruct_image(puzzle_data)
 
 
 def find_monsters(image, monster):
   m_h, m_w = len(monster), len(monster[0])
   subgrid_h, subgrid_w = len(image) - m_h, len(image[0]) - m_w
-  return sum(all(image[y + m_y][x + m_x] == '#' or monster[m_y][m_x] == ' '
+  return sum(all(image[y + m_y][x + m_x] == '#' or not monster[m_y][m_x]
                  for m_x, m_y in all_coords(m_w, m_h))
              for x, y in all_coords(subgrid_w, subgrid_h))
 
 
 def habitat_rougness(image):
-  sea_monster = ['                  # ',
-                 '#    ##    ##    ###',
-                 ' #  #  #  #  #  #   ']
-  for _, monster in alternatives(sea_monster):
+  monster = ['                  # ',
+             '#    ##    ##    ###',
+             ' #  #  #  #  #  #   ']
+  monster = [[c if c != ' ' else None for c in line] for line in monster]
+  for _, monster in alternatives(monster):
     result = find_monsters(image, monster)
     if result > 0:
       break
-  return str(image).count('#') - str(sea_monster).count('#') * result
+  return str(image).count('#') - str(monster).count('#') * result
 
 
 def parse(group):
@@ -114,7 +115,7 @@ def main():
   global width, height, grids
   grids = dict(get_data(today, [('func', parse)], groups=True))
   width = height = int(sqrt(len(grids)))
-  checksum, image = lay_puzzle()
+  checksum, image = solve_puzzle()
   print(f'{today} star 1 = {checksum}')
   print(f'{today} star 2 = {habitat_rougness(image)}')
 
