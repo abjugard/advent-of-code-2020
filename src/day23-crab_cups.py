@@ -10,6 +10,9 @@ class Cup:
     self.label = label
     self.n_cup = n_cup
 
+  def __eq__(self, value):
+    return self.label == value
+
   def __matmul__(self, ns):
     target = self.n_cup
     while ns > 1:
@@ -17,16 +20,20 @@ class Cup:
       ns -= 1
     return target
 
+  def __contains__(self, target):
+    pointer = self
+    for _ in range(3):
+      if pointer == target:
+        return True
+      pointer @= 1
+    return False
 
-def get_target(current, chain_pointer, limit):
-  illegal = set()
-  for _ in range(3):
-    illegal.add(chain_pointer.label)
-    chain_pointer @= 1
-  target = limit if current.label == 1 else current.label - 1
-  while target in illegal:
-    target = limit if target == 1 else target - 1
-  return jump[target]
+
+def get_target(current, chain, limit):
+  t = current.label - 1 or limit
+  while t in chain:
+    t = t - 1 or limit
+  return jump[t]
 
 
 def splice(target, chain_pointer):
