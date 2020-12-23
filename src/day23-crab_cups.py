@@ -10,36 +10,31 @@ class Cup:
     self.label = label
     self.n_cup = n_cup
 
-  def __eq__(self, value):
-    return self.label == value
+  def __eq__(self, value): return self.label == value
+  def __ne__(self, value): return self.label != value
+  def __mul__(self, other): return self.label * other.label
 
   def __matmul__(self, ns):
+    if ns == 1:
+      return self.n_cup
     target = self.n_cup
     while ns > 1:
       target = target.n_cup
       ns -= 1
     return target
 
-  def __contains__(self, target):
-    pointer = self
-    for _ in range(3):
-      if pointer == target:
-        return True
-      pointer @= 1
-    return False
 
-
-def get_target(current, chain, limit):
+def get_target(current, a, b, c, limit):
   t = current.label - 1 or limit
-  while t in chain:
+  while t == a or t == b or t == c:
     t = t - 1 or limit
   return jump[t]
 
 
-def splice(target, chain_pointer):
+def splice(target, chain_start, chain_end):
   original_n = target @ 1
-  target.n_cup = chain_pointer
-  (chain_pointer @ 2).n_cup = original_n
+  target.n_cup = chain_start
+  chain_end.n_cup = original_n
 
 
 def play_game(init_order, cup_count=10, iterations=100):
@@ -53,20 +48,24 @@ def play_game(init_order, cup_count=10, iterations=100):
 
   current = cups[0]
   for _ in range(iterations):
-    chain_pointer = current @ 1
-    current.n_cup = chain_pointer @ 3
+    a = chain_start = current @ 1
+    b = chain_middle = chain_start @ 1
+    c = chain_end = chain_middle @ 1
 
-    target = get_target(current, chain_pointer, cup_count)
-    splice(target, chain_pointer)
+    next_cup = chain_end @ 1
+    current.n_cup = next_cup
 
-    current @= 1
+    target = get_target(current, a, b, c, cup_count)
+    splice(target, chain_start, chain_end)
+
+    current = next_cup
   return jump[1]
 
 
 def play_short_game(init_order):
   cup = play_game(init_order, len(init_order))
   result = ''
-  while (cup @ 1).label != 1:
+  while cup @ 1 != 1:
     cup @= 1
     result += str(cup.label)
   return result
@@ -74,7 +73,7 @@ def play_short_game(init_order):
 
 def play_long_game(init_order):
   cup_one = play_game(init_order, 1_000_000, 10_000_000)
-  return (cup_one @ 1).label * (cup_one @ 2).label
+  return (cup_one @ 1) * (cup_one @ 2)
 
 
 def main():
