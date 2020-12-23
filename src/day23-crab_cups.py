@@ -2,7 +2,7 @@ from santas_little_helpers import *
 
 today = day(2020, 23)
 
-jump = dict()
+jump = []
 
 
 class Cup:
@@ -43,8 +43,10 @@ def play_game(init_order, cup_count=10, iterations=100):
     cups.extend(Cup(label) for label in range(10, cup_count + 1))
   for left, right in zip(cups, cups[1:] + [cups[0]]):
     left.n_cup = right
-  for cup in cups:
-    jump[cup.label] = cup
+  jump.clear()
+  jump.append(None)
+  for cup in sorted(cups, key=lambda c: c.label):
+    jump.append(cup)
 
   current = cups[0]
   for _ in range(iterations):
